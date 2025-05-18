@@ -46,7 +46,7 @@ def make_tstring(tokens: Sequence[Token], first_prefix: str) -> list[Token]:
     if not isinstance(expr, ast.JoinedStr):
         return list(tokens)
 
-    args = []
+    args: list[ast.expr] = []
     const = True
     for val in expr.values:
         if isinstance(val, ast.Constant):

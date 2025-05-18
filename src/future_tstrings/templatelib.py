@@ -11,8 +11,11 @@ if sys.version_info >= (3, 10) or TYPE_CHECKING:
 else:
     ConversionType = ...
 
-if natively_supports_tstrings() and not TYPE_CHECKING:
-    from string.templatelib import Template as Template, Interpolation as Interpolation  # type: ignore
+if not TYPE_CHECKING and natively_supports_tstrings():
+    from string.templatelib import (
+        Template as Template,
+        Interpolation as Interpolation,
+    )  # type: ignore
 
 else:
 
@@ -36,23 +39,21 @@ else:
             """
             return self._interpolations
 
-        def __new__(
-            cls, *args: str | Interpolation | tuple[object, str, ConversionType, str]
+        def __init__(
+            self, *args: str | Interpolation | tuple[object, str, ConversionType, str]
         ):
             """
             Create a new Template instance.
 
             Arguments can be provided in any order.
             """
-            self = object.__new__(cls)
+            super().__init__()
             self._strings = tuple(str(x) for i, x in enumerate(args) if not i % 2)
             self._interpolations = tuple(
                 Interpolation(*x)  # type: ignore
                 for i, x in enumerate(args)
                 if i % 2
             )
-
-            return self
 
         @property
         def values(self) -> tuple[object, ...]:

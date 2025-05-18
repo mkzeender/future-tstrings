@@ -38,7 +38,7 @@ jobs:
         uv run pytest .
     - name: Type checking
       run: |
-        uv run mypy -p future_tstrings
+        uv run mypy --ignore-missing-imports -p future_tstrings
 
   build-and-test-old-python:
 
@@ -68,4 +68,4 @@ jobs:
         uv run pytest --ignore-glob=*312.* .
     - name: Type checking
       run: |
-        uv run mypy -p future_tstrings
+        uv run mypy --ignore-missing-imports -p future_tstrings

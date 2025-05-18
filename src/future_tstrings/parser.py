@@ -1,8 +1,11 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+import sys
+from typing import Any
 
-if TYPE_CHECKING:
+if sys.version_info >= (3, 11):
     from collections.abc import Buffer
+else:
+    Buffer = Any
 from future_tstrings.utils import TokenSyntaxError, tstring_prefix
 from .make_tstring import make_tstring
 from .utils import utf_8
