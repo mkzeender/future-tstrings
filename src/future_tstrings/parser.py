@@ -1,41 +1,58 @@
-from collections.abc import Buffer
-from future_tstrings.utils import TokenSyntaxError, is_tstring
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Buffer
+from future_tstrings.utils import TokenSyntaxError, tstring_prefix
 from .make_tstring import make_tstring
 from .utils import utf_8
-from tokenize_rt import (
-    src_to_tokens,
-    NON_CODING_TOKENS,
-    tokens_to_src,
-)
+from tokenize_rt import src_to_tokens, tokens_to_src, NON_CODING_TOKENS, Token
 
 
 def decode(b: Buffer, errors="strict"):
-    u, length = utf_8.decode(b, errors)
-    tokens = src_to_tokens(u)
+    src, length = utf_8.decode(b, errors)
+    tokens = tokenize(src)
+    return tokens_to_src(tokens), length
 
-    to_replace = []
-    start = end = seen_t = None
+
+def tokenize(src: str) -> list[Token]:
+    tokens = src_to_tokens(src)
+    to_replace = list[tuple[int, int, str]]()
+    start = end = t_prefix = None
+    prev: Token | None = None
 
     for i, token in enumerate(tokens):
         if start is None:
             if token.name == "STRING":
                 start, end = i, i + 1
-                seen_t = is_tstring(token)
+                t_prefix = tstring_prefix(token, prev)
+
         elif token.name == "STRING":
             end = i + 1
-            seen_t = seen_t or is_tstring(token)
+            t_prefix = t_prefix or tstring_prefix(token, prev)
         elif token.name not in NON_CODING_TOKENS:
-            if seen_t:
-                to_replace.append((start, end))
-            start = end = seen_t = None
+            assert end is not None
+            if t_prefix:
+                to_replace.append((start, end, t_prefix))
+            start = end = t_prefix = None
+        prev = token
 
-    for start, end in reversed(to_replace):
+    for start, end, t_prefix in reversed(to_replace):
         try:
-            tokens[start:end] = make_tstring(tokens[start:end])
+            start_incl = start - bool(t_prefix)
+            tokens[start_incl:end] = make_tstring(tokens[start:end], t_prefix)
         except TokenSyntaxError as e:
-            msg = str(e.e)
-            line = u.splitlines()[e.token.line - 1]
-            bts = line.encode("UTF-8")[: e.token.utf8_byte_offset]
-            indent = len(bts.decode("UTF-8"))
-            raise SyntaxError(msg + "\n\n" + line + "\n" + " " * indent + "^")
-    return tokens_to_src(tokens), length
+            if src:
+                msg = str(e.e)
+                line = (
+                    src.splitlines()[e.token.line - 1]
+                    if e.token.line is not None
+                    else ""
+                )
+                bts = line.encode("UTF-8")[: e.token.utf8_byte_offset]
+                indent = len(bts.decode("UTF-8"))
+                raise SyntaxError(msg + "\n\n" + line + "\n" + " " * indent + "^")
+            else:
+                raise e.e
+
+    return tokens

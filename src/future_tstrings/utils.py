@@ -1,18 +1,22 @@
+from __future__ import annotations
+
 import encodings
-import encodings.utf_8
-from tokenize_rt import Token, parse_string_literal
+from tokenize_rt import Token
 
 
 class TokenSyntaxError(SyntaxError):
-    def __init__(self, e, token):
-        super(TokenSyntaxError, self).__init__(e)
+    def __init__(self, e: SyntaxError, token: Token):
+        super().__init__(e)
         self.e = e
         self.token = token
 
 
-def is_tstring(token: Token):
-    prefix, _ = parse_string_literal(token.src)
-    return "t" in prefix.lower()
+def tstring_prefix(token: Token, prev: Token | None) -> str | None:
+    if prev is not None and prev.name == "NAME" and "t" in prev.src.lower():
+        return prev.src
+    return None
+    # prefix, _ = parse_string_literal(token.src)
+    # return "t" in prefix.lower()
 
 
 _utf_8 = encodings.search_function("utf8")

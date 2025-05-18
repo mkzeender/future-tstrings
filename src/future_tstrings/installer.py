@@ -1,4 +1,5 @@
 from __future__ import annotations
+import sys
 
 from future_tstrings import ENCODING_NAMES, natively_supports_tstrings
 import codecs
@@ -6,6 +7,16 @@ import codecs
 
 def install():
     codecs.register(create_codec_map().get)
+
+    if not natively_supports_tstrings():
+        import string
+        import builtins
+        from . import templatelib
+
+        # monkey-patch string.templatelib and builtins!
+        string.templatelib = templatelib  # type: ignore
+        sys.modules["string.templatelib"] = templatelib
+        builtins.__create_template__ = templatelib.Template  # type: ignore
 
 
 def create_codec_map():

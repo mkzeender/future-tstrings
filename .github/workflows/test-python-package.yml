@@ -1,0 +1,71 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python package
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  build-and-test:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install uv and python ${{ matrix.python-version }}
+      uses: astral-sh/setup-uv@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        enable-cache: true
+        cache-local-path: ".uv"
+
+    - name: Install project and dependencies
+      run: |
+        uv sync --all-extras --dev
+    # - name: Generate doc-tests for .md files
+    #   run: |
+    #     python -m generate_readme_tests
+    - name: Test with pytest
+      run: |
+        uv run pytest --doctest-plus --doctest-glob '*.md'
+    - name: Type checking
+      run: |
+        uv run mypy -p future_tstrings
+
+  build-and-test-old-python:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install uv and python ${{ matrix.python-version }}
+      uses: astral-sh/setup-uv@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        enable-cache: true
+        cache-local-path: ".uv"
+
+    - name: Install project and dependencies
+      run: |
+        uv sync --all-extras --dev
+    # - name: Generate doc-tests for .md files
+    #   run: |
+    #     python -m generate_readme_tests
+    - name: Test with pytest
+      run: |
+        uv run pytest --ignore-glob=*312.* .
+    - name: Type checking
+      run: |
+        uv run mypy -p future_tstrings
