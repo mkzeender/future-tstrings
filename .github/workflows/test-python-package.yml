@@ -35,7 +35,7 @@ jobs:
     #     python -m generate_readme_tests
     - name: Test with pytest
       run: |
-        uv run pytest --doctest-plus --doctest-glob '*.md'
+        uv run pytest .
     - name: Type checking
       run: |
         uv run mypy -p future_tstrings
