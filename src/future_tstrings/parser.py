@@ -2,7 +2,7 @@ from __future__ import annotations
 import sys
 from typing import Any
 
-if sys.version_info >= (3, 11):
+if sys.version_info >= (3, 12):
     from collections.abc import Buffer
 else:
     Buffer = Any

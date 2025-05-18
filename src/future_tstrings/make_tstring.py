@@ -2,7 +2,7 @@ import ast
 from collections.abc import Sequence
 from typing import Any
 from future_tstrings.utils import tstring_prefix
-from tokenize_rt import Token, parse_string_literal, tokens_to_src, src_to_tokens
+from tokenize_rt import Token, tokens_to_src, src_to_tokens
 from . import parser
 
 NAME = "NAME"
