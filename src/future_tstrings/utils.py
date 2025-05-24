@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import encodings
-from tokenize_rt import Token
+from tokenize import TokenInfo as Token
 
 
 class TokenSyntaxError(SyntaxError):
@@ -12,8 +12,8 @@ class TokenSyntaxError(SyntaxError):
 
 
 def tstring_prefix(token: Token, prev: Token | None) -> str | None:
-    if prev is not None and prev.name == "NAME" and "t" in prev.src.lower():
-        return prev.src
+    if prev is not None and prev.type == "NAME" and "t" in prev.string.lower():
+        return prev.string
     return None
     # prefix, _ = parse_string_literal(token.src)
     # return "t" in prefix.lower()

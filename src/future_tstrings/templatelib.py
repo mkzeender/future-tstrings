@@ -77,8 +77,15 @@ else:
                     yield i
 
         def __repr__(self) -> str:
-            return "t" + repr(
-                "".join((v if isinstance(v, str) else v._create_repr()) for v in self)
+            return (
+                "t'"
+                + (
+                    "".join(
+                        (_escape_string(v) if isinstance(v, str) else v._create_repr())
+                        for v in self
+                    )
+                )
+                + "'"
             )
 
     class Interpolation(NamedTuple):
@@ -91,4 +98,15 @@ else:
             conv = ("!" + self.conversion) if self.conversion is not None else ""
             fmt = (":" + self.format_spec) if self.format_spec is not None else ""
 
-            return "{" + self.expression + conv + fmt + "}"
+            return f"{{{self.value!r}{conv}{fmt}}}"
+
+
+def _escape_string(s: str):
+    s = repr(s)
+    q = s[0]
+    s = s[1:-1]
+    if q == '"':
+        s = s.replace("'", r"\'")
+
+    return s
+    # return s.encode("unicode_escape").decode("utf-8")

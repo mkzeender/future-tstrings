@@ -2,7 +2,7 @@ import ast
 from collections.abc import Sequence
 from typing import Any
 from future_tstrings.utils import tstring_prefix
-from tokenize_rt import Token, tokens_to_src, src_to_tokens
+from tokenize import TokenInfo as Token
 from . import parser
 
 NAME = "NAME"
@@ -21,13 +21,13 @@ def make_tstring(tokens: Sequence[Token], first_prefix: str) -> list[Token]:
     prev: Token | None = None
 
     for i, token in enumerate(tokens):
-        if token.name == "STRING":
+        if token.type == "STRING":
             if i:
                 prefix = tstring_prefix(token, prev)
             else:
                 prefix = first_prefix
             if prefix:
-                s = token.src
+                s = token.string
                 new_prefix = "f" + prefix.replace("t", "").replace("T", "")
                 fstring_tokens = parser.tokenize(new_prefix + s)
                 new_tokens.extend(fstring_tokens)
@@ -36,7 +36,7 @@ def make_tstring(tokens: Sequence[Token], first_prefix: str) -> list[Token]:
         else:
             pass
 
-    as_fstring = tokens_to_src(new_tokens)
+    as_fstring = parser.tokens_to_src(new_tokens)
 
     expr = ast.parse(as_fstring, mode="eval").body
 
@@ -74,7 +74,7 @@ def make_tstring(tokens: Sequence[Token], first_prefix: str) -> list[Token]:
 
             const = True
 
-    return src_to_tokens(
+    return parser.src_to_tokens(
         ast.unparse(
             ast.Call(
                 func=ast.Name(id=TEMPLATE_BUILTIN, ctx=ast.Load()),
