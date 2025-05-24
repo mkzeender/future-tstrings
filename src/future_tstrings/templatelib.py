@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from itertools import zip_longest
-import sys
-from typing import TYPE_CHECKING, Literal, NamedTuple
+from typing import TYPE_CHECKING, Literal, NamedTuple, final
 from . import natively_supports_tstrings
 
-if sys.version_info >= (3, 10) or TYPE_CHECKING:
-    ConversionType = Literal["a", "r", "s"] | None
-else:
-    ConversionType = ...
+__all__ = [
+    "Interpolation",
+    "Template",
+]
+ConversionType = Literal["a", "r", "s", None]
 
 if not TYPE_CHECKING and natively_supports_tstrings():
     from string.templatelib import (
@@ -19,6 +19,7 @@ if not TYPE_CHECKING and natively_supports_tstrings():
 
 else:
 
+    @final
     class Template:
         __slots__ = "_strings", "_interpolations"
 
@@ -40,7 +41,8 @@ else:
             return self._interpolations
 
         def __init__(
-            self, *args: str | Interpolation | tuple[object, str, ConversionType, str]
+            self,
+            *args: str | Interpolation | tuple[object, str, ConversionType, str] | None,
         ):
             """
             Create a new Template instance.
@@ -48,12 +50,23 @@ else:
             Arguments can be provided in any order.
             """
             super().__init__()
-            self._strings = tuple(str(x) for i, x in enumerate(args) if not i % 2)
-            self._interpolations = tuple(
-                Interpolation(*x)  # type: ignore
-                for i, x in enumerate(args)
-                if i % 2
-            )
+            strings = [""]
+            interps = []
+            for arg in args:
+                if isinstance(arg, str):
+                    strings[-1] += arg
+                elif isinstance(arg, tuple):
+                    interps.append(Interpolation(*arg))
+                    interps.append("")
+                elif arg is None:
+                    pass
+                else:
+                    raise TypeError(
+                        f"Argument of type {type(arg)} is not supported by Template()"
+                    )
+
+            self._strings = tuple(strings)
+            self._interpolations = tuple(interps)
 
         @property
         def values(self) -> tuple[object, ...]:
@@ -70,7 +83,7 @@ else:
 
             These may appear in any order. Empty strings will not be included.
             """
-            for s, i in zip_longest(self.strings, self.interpolations):
+            for s, i in zip_longest(self.strings, self.interpolations, fillvalue=None):
                 if s:
                     yield s
                 if i is not None:
@@ -87,6 +100,20 @@ else:
                 )
                 + "'"
             )
+
+        def __add__(self, other: Template | str) -> Template:
+            if isinstance(other, str):
+                return Template(*self, other)
+            elif isinstance(other, Template):
+                return Template(*self, *other)
+            return NotImplemented
+
+        def __radd__(self, other: Template | str) -> Template:
+            if isinstance(other, str):
+                return Template(other, *self)
+            elif isinstance(other, Template):
+                return Template(*other, *self)
+            return NotImplemented
 
     class Interpolation(NamedTuple):
         value: object
@@ -109,4 +136,3 @@ def _escape_string(s: str):
         s = s.replace("'", r"\'")
 
     return s
-    # return s.encode("unicode_escape").decode("utf-8")
