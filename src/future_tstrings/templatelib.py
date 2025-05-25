@@ -123,7 +123,7 @@ else:
 
         def _create_repr(self):
             conv = ("!" + self.conversion) if self.conversion is not None else ""
-            fmt = (":" + self.format_spec) if self.format_spec is not None else ""
+            fmt = (":" + self.format_spec) if self.format_spec else ""
 
             return f"{{{self.value!r}{conv}{fmt}}}"
 
@@ -136,3 +136,33 @@ def _escape_string(s: str):
         s = s.replace("'", r"\'")
 
     return s
+
+
+def convert(value: object, conversion: ConversionType) -> object:
+    """Convert a value to string based on conversion type"""
+    if conversion == "a":
+        return ascii(value)
+    elif conversion == "r":
+        return repr(value)
+    elif conversion == "s":
+        return str(value)
+    return value
+
+
+def to_fstring(template: Template) -> str:
+    """Format a template string as if it was an fstring"""
+    parts = []
+    for item in template:
+        if isinstance(item, str):
+            parts.append(item)
+        else:
+            value, _, conversion, format_spec = item
+            value = convert(value, conversion)
+            value = format(value, format_spec)
+            parts.append(value)
+    return "".join(parts)
+
+
+def _create_joined_string(*args: str | tuple):
+    """implements fstrings on python < 3.12"""
+    return to_fstring(Template(*args))

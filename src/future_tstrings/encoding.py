@@ -1,10 +1,17 @@
+from __future__ import annotations
+
+import ast
 import codecs
 import io
-from typing import Protocol
 
 from . import ENCODING_NAMES
 from .utils import utf_8
-from .parser import decode
+from .parser import compile_to_ast
+
+from typing import Protocol, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Buffer
 
 
 class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
@@ -36,6 +43,12 @@ class StreamReader(codecs.StreamReader):
     def stream(self, stream: ReadableBuffer):  # type: ignore
         self._stream = stream
         self._decoded = False
+
+
+def decode(b: Buffer, errors="strict"):
+    src, length = utf_8.decode(b, errors)
+    new_src = ast.unparse(compile_to_ast(src, mode="exec", filepath="<buffered file>"))
+    return new_src, length
 
 
 # codec api

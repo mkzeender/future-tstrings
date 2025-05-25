@@ -3,6 +3,11 @@ from __future__ import annotations
 import encodings
 from tokenize import TokenInfo as Token
 
+TEMPLATE_BUILTIN = "__create_template__"
+FSTRING_BUILTIN = "__create_fstring__"
+
+CONVERSION = {-1: None, 115: "s", 114: "r", 97: "a"}
+
 
 class TokenSyntaxError(SyntaxError):
     def __init__(self, e: SyntaxError, token: Token):
