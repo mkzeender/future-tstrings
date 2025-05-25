@@ -14,7 +14,7 @@ def _all_string_prefixes(*, include_fstring=False, only_fstring=False):
     # The valid string prefixes. Only contain the lower case versions,
     #  and don't contain any permuations (include 'fr', but not
     #  'rf'). The various permutations will be generated.
-    valid_string_prefixes = ["b", "r", "u", "br", "t"]
+    valid_string_prefixes = ["b", "r", "u", "br"]
 
     result = {""}
     if include_fstring:

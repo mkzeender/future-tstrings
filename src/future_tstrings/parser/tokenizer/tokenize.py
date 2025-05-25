@@ -11,6 +11,7 @@ from parso.python.tokenize import (
     FStringNode,
     BOM_UTF8_STRING,
 )
+from parso.utils import split_lines
 from ._tokens_util import close_fstring_if_necessary, split_illegal_unicode_name
 
 
@@ -18,6 +19,14 @@ from future_tstrings.parser.tokenizer._tokens_re import (
     create_token_collection,
     find_fstring_string,
 )
+
+
+def tokenize(
+    code: str, *, start_pos: tuple[int, int] = (1, 0)
+) -> Iterator[PythonToken]:
+    """Generate tokens from a the source code (string)."""
+    lines = split_lines(code, keepends=True)
+    return tokenize_lines(lines, start_pos=start_pos)
 
 
 def tokenize_lines(
@@ -35,7 +44,7 @@ def tokenize_lines(
     that is irrelevant for the parser like newlines in parentheses or comments.
     """
     if indents is None:
-        indents = []
+        indents = [0]
 
     def dedent_if_necessary(start):
         while start < indents[-1]:
@@ -56,8 +65,7 @@ def tokenize_lines(
         always_break_tokens,
     ) = create_token_collection()
     paren_level = 0  # count parentheses
-    if indents is None:
-        indents = [0]
+
     max_ = 0
     numchars = "0123456789"
     contstr = ""
