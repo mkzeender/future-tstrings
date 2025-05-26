@@ -4,7 +4,9 @@ future-tstrings
 
 A backport of tstrings to python<3.14
 
-Also serves as a backport of full-syntax fstrings (PEP 701) to python <3.12 
+Also serves as a backport of full-syntax fstrings (PEP701-style) to python <3.12.
+
+This api may be unstable until the release of python 3.14 to ensure it is fully compatible.
 
 
 ## Installation
@@ -23,7 +25,10 @@ the utf-8 cookie if you already have it):
 
 And then write python 3.14 tstring and fstring code as usual!
 
+
 ```python
+- example.py
+
 # -*- coding: future-tstrings -*-
 thing = 'world'
 template = t'hello {thing}'
@@ -34,7 +39,7 @@ assert template.interpolations[0].value == 'world'
 ```
 
 ```console
-$ python example.py
+$ python -m example
 t"hello {'world'}"
 ```
 
@@ -43,7 +48,7 @@ t"hello {'world'}"
 `future-tstrings` also includes a cli to show transformed source.
 
 ```console
-$ future-tstrings main.py
+$ future-tstrings example.py
 thing = 'world'
 print('hello {}'.format((thing)))
 ```
