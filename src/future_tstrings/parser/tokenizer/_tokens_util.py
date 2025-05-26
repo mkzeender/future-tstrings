@@ -1,7 +1,5 @@
 from parso.python.token import PythonTokenTypes as TOKS
-from parso.python.tokenize import (
-    PythonToken,
-)
+from parso.python.tokenize import PythonToken, FStringNode
 
 
 def split_illegal_unicode_name(token, start_pos, prefix):
@@ -40,20 +38,28 @@ def split_illegal_unicode_name(token, start_pos, prefix):
 
 
 def close_fstring_if_necessary(
-    fstring_stack, string, line_nr, column, additional_prefix
+    fstring_stack: list[FStringNode],
+    string: str,
+    line_nr: int,
+    column: int,
+    additional_prefix: str,
 ):
-    for fstring_stack_index, node in enumerate(fstring_stack):
-        lstripped_string = string.lstrip()
-        len_lstrip = len(string) - len(lstripped_string)
-        if lstripped_string.startswith(node.quote):
-            token = PythonToken(
-                TOKS.FSTRING_END,
-                node.quote,
-                (line_nr, column + len_lstrip),
-                prefix=additional_prefix + string[:len_lstrip],
-            )
-            additional_prefix = ""
-            assert not node.previous_lines
-            del fstring_stack[fstring_stack_index:]
-            return token, "", len(node.quote) + len_lstrip
+    if not fstring_stack or fstring_stack[-1].parentheses_count > 0:
+        return None, additional_prefix, 0
+
+    node = fstring_stack[-1]
+
+    lstripped_string = string.lstrip()
+    len_lstrip = len(string) - len(lstripped_string)
+    if lstripped_string.startswith(node.quote):
+        token = PythonToken(
+            TOKS.FSTRING_END,
+            node.quote,
+            (line_nr, column + len_lstrip),
+            prefix=additional_prefix + string[:len_lstrip],
+        )
+        additional_prefix = ""
+        assert not node.previous_lines
+        fstring_stack.pop()
+        return token, "", len(node.quote) + len_lstrip
     return None, additional_prefix, 0

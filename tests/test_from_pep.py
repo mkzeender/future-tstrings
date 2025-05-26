@@ -35,4 +35,8 @@ def test_nested_fmt_spec():
     assert template.interpolations[0].format_spec == ".2f"
 
 
-    
+def test_nested_tstring():
+    world = 'World'
+    template = t"Value: {t'hello {world}'}"
+
+    assert template.interpolations[0].value.interpolations[0].value == world

@@ -2,13 +2,9 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from itertools import zip_longest
-from typing import TYPE_CHECKING, Literal, NamedTuple, final
+from typing import TYPE_CHECKING, Literal, NamedTuple, TypeVar, final
 from . import natively_supports_tstrings
 
-__all__ = [
-    "Interpolation",
-    "Template",
-]
 ConversionType = Literal["a", "r", "s", None]
 
 if not TYPE_CHECKING and natively_supports_tstrings():
@@ -57,7 +53,7 @@ else:
                     strings[-1] += arg
                 elif isinstance(arg, tuple):
                     interps.append(Interpolation(*arg))
-                    interps.append("")
+                    strings.append("")
                 elif arg is None:
                     pass
                 else:
@@ -101,17 +97,13 @@ else:
                 + "'"
             )
 
-        def __add__(self, other: Template | str) -> Template:
-            if isinstance(other, str):
-                return Template(*self, other)
-            elif isinstance(other, Template):
+        def __add__(self, other: Template) -> Template:
+            if isinstance(other, Template):
                 return Template(*self, *other)
             return NotImplemented
 
-        def __radd__(self, other: Template | str) -> Template:
-            if isinstance(other, str):
-                return Template(other, *self)
-            elif isinstance(other, Template):
+        def __radd__(self, other: Template) -> Template:
+            if isinstance(other, Template):
                 return Template(*other, *self)
             return NotImplemented
 
@@ -138,7 +130,10 @@ def _escape_string(s: str):
     return s
 
 
-def convert(value: object, conversion: ConversionType) -> object:
+_T = TypeVar("_T")
+
+
+def convert(value: _T, conversion: ConversionType = None) -> _T | str:
     """Convert a value to string based on conversion type"""
     if conversion == "a":
         return ascii(value)
@@ -150,15 +145,14 @@ def convert(value: object, conversion: ConversionType) -> object:
 
 
 def to_fstring(template: Template) -> str:
-    """Format a template string as if it was an fstring"""
+    """Join the pieces of a template string as if it was an fstring"""
     parts = []
     for item in template:
         if isinstance(item, str):
             parts.append(item)
         else:
-            value, _, conversion, format_spec = item
-            value = convert(value, conversion)
-            value = format(value, format_spec)
+            value = convert(item.value, item.conversion)
+            value = format(value, item.format_spec)
             parts.append(value)
     return "".join(parts)
 

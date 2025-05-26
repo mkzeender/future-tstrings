@@ -47,7 +47,9 @@ class StreamReader(codecs.StreamReader):
 
 def decode(b: Buffer, errors="strict"):
     src, length = utf_8.decode(b, errors)
-    new_src = ast.unparse(compile_to_ast(src, mode="exec", filepath="<buffered file>"))
+    ast_ = compile_to_ast(src, mode="exec", filepath="<buffered file>")
+    new_src = ast.unparse(ast_) + "\n"
+
     return new_src, length
 
 
@@ -59,8 +61,8 @@ def create_tstring_codec_map() -> dict[str, codecs.CodecInfo]:
             encode=utf_8.encode,
             decode=decode,
             incrementalencoder=utf_8.incrementalencoder,
-            incrementaldecoder=IncrementalDecoder,
-            streamreader=StreamReader,
+            incrementaldecoder=None,
+            streamreader=None,
             streamwriter=utf_8.streamwriter,
         )
         for name in ENCODING_NAMES

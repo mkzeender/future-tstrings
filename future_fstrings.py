@@ -12,4 +12,8 @@ print(*tokenize(v), sep="\n")
 
 print(parse_to_cst(v).dump())
 
-print(ast.dump(compile_to_ast(v, mode="exec"), indent=2))
+ast_ = compile_to_ast(v, mode="exec")
+
+print(ast.dump(ast_, indent=2))
+
+print(ast.unparse(ast_))

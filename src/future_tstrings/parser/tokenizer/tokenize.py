@@ -149,19 +149,19 @@ def tokenize_lines(
                     yield fstring_end_token
                     continue
 
-            # in an f-string, match until the end of the string
-            if fstring_stack:
-                string_line = line
-                for fstring_stack_node in fstring_stack:
-                    quote = fstring_stack_node.quote
-                    end_match = endpats[quote].match(line, pos)
-                    if end_match is not None:
-                        end_match_string = end_match.group(0)
-                        if len(end_match_string) - len(quote) + pos < len(string_line):
-                            string_line = line[:pos] + end_match_string[: -len(quote)]
-                pseudomatch = pseudo_token.match(string_line, pos)
-            else:
-                pseudomatch = pseudo_token.match(line, pos)
+            # # in an f-string, match until the end of the string
+            # if fstring_stack:
+            #     string_line = line
+            #     for fstring_stack_node in fstring_stack:
+            #         quote = fstring_stack_node.quote
+            #         end_match = endpats[quote].match(line, pos)
+            #         if end_match is not None:
+            #             end_match_string = end_match.group(0)
+            #             if len(end_match_string) - len(quote) + pos < len(string_line):
+            #                 string_line = line[:pos] + end_match_string[: -len(quote)]
+            #     pseudomatch = pseudo_token.match(string_line, pos)
+            # else:
+            pseudomatch = pseudo_token.match(line, pos)
 
             if pseudomatch:
                 prefix = additional_prefix + pseudomatch.group(1)
