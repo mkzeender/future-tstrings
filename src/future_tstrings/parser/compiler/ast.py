@@ -1,3 +1,4 @@
+from __future__ import annotations
 from ast import (
     AST,
     Call,
@@ -77,7 +78,7 @@ class CstToAstCompiler:
         self.filename = filename
         self.code = code
 
-    def generic_visit[NodeT: CstNodeOrLeaf](self, node: NodeT) -> NodeT:
+    def generic_visit(self, node: CstNodeOrLeaf) -> CstNodeOrLeaf:
         if isinstance(node, CstErrorLeaf | CstErrorNode):
             self.generic_error(node)
         if isinstance(node, CstBaseNode | CstNode):
@@ -140,7 +141,7 @@ class CstToAstCompiler:
             ),
         )
 
-    def visit[NodeT: CstNodeOrLeaf](self, node: NodeT) -> NodeT:
+    def visit(self, node: CstNodeOrLeaf) -> CstNodeOrLeaf:
         return getattr(self, "visit_" + node.type, self.generic_visit)(node)
 
     def visit_fstring(self, node: CstNode) -> CstNodeOrLeaf:

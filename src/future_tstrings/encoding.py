@@ -48,6 +48,9 @@ class StreamReader(codecs.StreamReader):
 def decode(b: Buffer, errors="strict"):
     src, length = utf_8.decode(b, errors)
     ast_ = compile_to_ast(src, mode="exec", filepath="<buffered file>")
+    if errors == "strict":
+        # test compilation. This will lead to better error messages in case of SyntaxError
+        compile(ast_, filename="<future-fstring encoded file>", mode="exec")
     new_src = ast.unparse(ast_) + "\n"
 
     return new_src, length

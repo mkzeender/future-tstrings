@@ -32,13 +32,13 @@ class FutureGrammar(PythonGrammar):
 _gram = None
 
 
-def load_grammar(_py_grammar=False) -> FutureGrammar:
+def load_grammar() -> FutureGrammar:
     global _gram
     if _gram is None:
         version = parse_version_string()
         gram_text = read_text(
             __name__,
-            f"{'' if _py_grammar else 'x'}grammar{version.major}{version.minor}.txt",
+            "xgrammar313.txt",
         )
         _gram = FutureGrammar(version_info=version, bnf_text=gram_text)
 
