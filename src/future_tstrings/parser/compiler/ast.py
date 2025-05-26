@@ -19,10 +19,9 @@ from parso.python.tree import (
     FStringEnd as CstFstringEnd,
 )
 from parso.tree import NodeOrLeaf as CstNodeOrLeaf
-from typing import Never, Unpack
+
 
 from future_tstrings.utils import FSTRING_BUILTIN, TEMPLATE_BUILTIN
-from future_tstrings.templatelib import ConversionType
 
 from .ast_apply_offset import (
     apply_offset,
@@ -35,6 +34,10 @@ from .positions import (
     PosTuple,
     position_of,
 )
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Never, Unpack
 
 
 def _compile_with_offset(
@@ -79,9 +82,9 @@ class CstToAstCompiler:
         self.code = code
 
     def generic_visit(self, node: CstNodeOrLeaf) -> CstNodeOrLeaf:
-        if isinstance(node, CstErrorLeaf | CstErrorNode):
+        if isinstance(node, (CstErrorLeaf, CstErrorNode)):
             self.generic_error(node)
-        if isinstance(node, CstBaseNode | CstNode):
+        if isinstance(node, (CstBaseNode, CstNode)):
             for i, child in enumerate(node.children):
                 node.children[i] = self.visit(child)
         return node
@@ -89,15 +92,15 @@ class CstToAstCompiler:
     def generic_error(
         self, node: CstNodeOrLeaf, msg=None, **position: Unpack[OptionalPosDict]
     ) -> Never:
-        if isinstance(node, CstErrorNode | CstErrorLeaf):
+        if isinstance(node, (CstErrorNode, CstErrorLeaf)):
             child: CstNodeOrLeaf = node
             while children := getattr(child, "children", None):
                 for child in children:
-                    if isinstance(child, CstErrorNode | CstErrorLeaf):
+                    if isinstance(child, (CstErrorNode, CstErrorLeaf)):
                         break
                 else:
                     break
-            if not isinstance(child, CstErrorLeaf | CstErrorNode):
+            if not isinstance(child, (CstErrorLeaf, CstErrorNode)):
                 bad_child = child.get_next_leaf()
             else:
                 bad_child = child
@@ -173,7 +176,7 @@ class CstToAstCompiler:
         self, node: CstNode
     ) -> Iterator[ast.Tuple | ast.Constant]:
         pos = position_of(node)
-        conversion: ConversionType = None
+        conversion = ast.Constant(None, **pos)
         fmt_spec: ast.expr = ast.Constant("", **pos)
         expr_node: CstNodeOrLeaf | None = None
         for child in node.children:
@@ -184,10 +187,10 @@ class CstToAstCompiler:
                     eq_text: str = expr_node.get_code() + child.get_code() + suffix  # type: ignore
                     yield ast.Constant(value=eq_text, **position_of(child))
             elif isinstance(child, CstNode) and child.type == "fstring_conversion":
-                conversion = child.children[1].value  # type: ignore
+                conversion = ast.Constant(child.children[1].value, **position_of(child))  # type: ignore
             elif isinstance(child, CstNode) and child.type == "fstring_format_spec":
                 fmt_spec = self.create_joined_string(child, is_tstring=False)
-            elif isinstance(child, (CstErrorLeaf | CstErrorNode)):
+            elif isinstance(child, (CstErrorLeaf, CstErrorNode)):
                 self.generic_error(node)
             else:
                 expr_node = child
@@ -198,9 +201,11 @@ class CstToAstCompiler:
             elts=[
                 compile_subexpr(expr_node, self.filename),
                 ast.Constant(value=expr_node.get_code(), **expr_pos),
-                ast.Constant(conversion),
+                conversion,
                 fmt_spec,
-            ]
+            ],
+            ctx=ast.Load(),
+            **pos,
         )
 
     def create_joined_string(

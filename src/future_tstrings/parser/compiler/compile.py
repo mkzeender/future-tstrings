@@ -1,4 +1,4 @@
-from ast import Module
+from __future__ import annotations
 import ast
 from collections.abc import Mapping
 from typing import Any, Literal, overload

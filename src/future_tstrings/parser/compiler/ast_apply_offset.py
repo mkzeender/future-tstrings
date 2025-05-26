@@ -1,6 +1,6 @@
 from __future__ import annotations
 from ast import AST, NodeTransformer
-from typing import Any, Unpack
+
 
 from .positions import (
     OptionalPosDict,
@@ -9,6 +9,11 @@ from .positions import (
     add,
     has_loc,
 )
+
+TYPE_CHECKING = False
+
+if TYPE_CHECKING:
+    from typing import Any, Unpack
 
 
 class AstOffsetApplier(NodeTransformer):

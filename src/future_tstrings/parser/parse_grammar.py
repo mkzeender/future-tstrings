@@ -9,6 +9,8 @@ from parso.utils import PythonVersionInfo
 
 from .tokenizer.tokenize import tokenize_lines
 
+from . import __name__ as pkg_anchor
+
 
 def parse_to_cst(src: str) -> CstNode:
     gram = load_grammar()
@@ -37,7 +39,7 @@ def load_grammar() -> FutureGrammar:
     if _gram is None:
         version = parse_version_string()
         gram_text = read_text(
-            __name__,
+            pkg_anchor,
             "xgrammar313.txt",
         )
         _gram = FutureGrammar(version_info=version, bnf_text=gram_text)
