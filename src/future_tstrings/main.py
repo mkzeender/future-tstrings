@@ -1,5 +1,5 @@
 import argparse
-from .parser import decode
+from .encoding import decode
 
 
 def main(argv=None) -> None:

@@ -1,10 +1,17 @@
+from __future__ import annotations
+
+import ast
 import codecs
 import io
-from typing import Protocol
 
 from . import ENCODING_NAMES
 from .utils import utf_8
-from .parser import decode
+from .parser import compile_to_ast
+
+from typing import Protocol, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Buffer
 
 
 class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
@@ -38,6 +45,17 @@ class StreamReader(codecs.StreamReader):
         self._decoded = False
 
 
+def decode(b: Buffer, errors="strict"):
+    src, length = utf_8.decode(b, errors)
+    ast_ = compile_to_ast(src, mode="exec", filepath="<buffered file>")
+    if errors == "strict":
+        # test compilation. This will lead to better error messages in case of SyntaxError
+        compile(ast_, filename="<future-fstring encoded file>", mode="exec")
+    new_src = ast.unparse(ast_) + "\n"
+
+    return new_src, length
+
+
 # codec api
 def create_tstring_codec_map() -> dict[str, codecs.CodecInfo]:
     return {
@@ -46,8 +64,8 @@ def create_tstring_codec_map() -> dict[str, codecs.CodecInfo]:
             encode=utf_8.encode,
             decode=decode,
             incrementalencoder=utf_8.incrementalencoder,
-            incrementaldecoder=IncrementalDecoder,
-            streamreader=StreamReader,
+            incrementaldecoder=None,
+            streamreader=None,
             streamwriter=utf_8.streamwriter,
         )
         for name in ENCODING_NAMES

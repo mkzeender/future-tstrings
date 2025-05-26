@@ -1,14 +1,14 @@
 [project]
 name = "future-tstrings"
 version = "0.1.0"
-description = "Add your description here"
+description = "Backport of tstrings and PEP701 fstrings to python <3.14"
 readme = "README.md"
 authors = [
     { name = "Marckie Zeender", email = "mkzeender@gmail.com" }
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "tokenize-rt>=6.1.0",
+    "parso>=0.8.4",
 ]
 
 [project.scripts]
