@@ -6,6 +6,8 @@ A backport of tstrings to python<3.14
 
 Also serves as a backport of full-syntax fstrings (PEP701-style) to python <3.12.
 
+Does nothing on 3.14 or higher.
+
 This api may be unstable until the release of python 3.14 to ensure it is fully compatible.
 
 
@@ -36,6 +38,9 @@ print(template)
 
 assert template.strings[0] == 'hello '
 assert template.interpolations[0].value == 'world'
+
+from string.templatelib import Template
+assert isinstance(template, Template)
 ```
 
 ```console
@@ -50,7 +55,8 @@ t"hello {'world'}"
 ```console
 $ future-tstrings example.py
 thing = 'world'
-print('hello {}'.format((thing)))
+template = __create_template__('hello ', (thing, 'thing', None, ''))
+print(template)
 ```
 
 ## How does this work?
