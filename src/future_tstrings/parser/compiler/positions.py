@@ -1,6 +1,9 @@
 from __future__ import annotations
-from numbers import Number
-from typing import Any, NamedTuple, Protocol, TypeIs, TypedDict, overload
+
+from typing import NamedTuple, Protocol, TypedDict, overload, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import TypeIs
 
 
 class Located(Protocol):

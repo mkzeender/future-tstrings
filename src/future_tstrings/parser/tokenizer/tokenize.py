@@ -1,6 +1,6 @@
 # ruff: noqa: F821
 # pyright: reportPossiblyUnboundVariable=false
-
+from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from re import Pattern
 import re

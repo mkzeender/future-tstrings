@@ -11,7 +11,6 @@ from parso.python.tree import (
     PythonBaseNode as CstBaseNode,
     PythonNode as CstNode,
     Operator as CstOperator,
-    Name as CstName,
     PythonErrorLeaf as CstErrorLeaf,
     PythonErrorNode as CstErrorNode,
     FStringString as CstFstringString,
@@ -101,13 +100,13 @@ class CstToAstCompiler:
                 bad_child = child.get_next_leaf()
             else:
                 bad_child = child
-            msg = f'"{
+            msg = f""""{
                 bad_child.get_code(include_prefix=False)
                 if bad_child is not None
                 else "EOF"
-            }" is not understood here.'
+            }" is not understood here."""
             if bad_child is not node and bad_child is not None:
-                return self.generic_error(bad_child, msg=msg)
+                self.generic_error(bad_child, msg=msg)
 
         pos = position_of(node)
         pos.update(position)
