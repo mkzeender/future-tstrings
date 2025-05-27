@@ -5,7 +5,7 @@ import codecs
 import io
 
 from . import ENCODING_NAMES
-from .utils import utf_8
+from . import utf_8
 from .parser import compile_to_ast
 
 from typing import Protocol, TYPE_CHECKING

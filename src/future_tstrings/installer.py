@@ -1,10 +1,13 @@
 from __future__ import annotations
 import sys
 
-from future_tstrings import ENCODING_NAMES, natively_supports_tstrings
+from . import (
+    ENCODING_NAMES,
+    natively_supports_tstrings,
+    FSTRING_BUILTIN,
+    TEMPLATE_BUILTIN,
+)
 import codecs
-
-from future_tstrings.utils import FSTRING_BUILTIN, TEMPLATE_BUILTIN
 
 
 def install():
