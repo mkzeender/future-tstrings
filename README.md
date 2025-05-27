@@ -61,9 +61,9 @@ print(template)
 
 ## Integrating with template processing tools
 
-Libraries that consume template strings (html parsers, etc) do not need to do anything extra to support future-tstrings.
+Libraries that consume template strings (html parsers, etc) do not need to do anything extra to support future-tstrings, except:
 
-Libraries that consume template strings should NOT disable this behavior on python<3.14. Instead, they should only disable the behavior if `import strings.templatelib` fails.
+They should NOT disable this behavior on python<3.14. Instead, they should only disable the behavior if `import strings.templatelib` fails.
 
 ## How does this work?
 
