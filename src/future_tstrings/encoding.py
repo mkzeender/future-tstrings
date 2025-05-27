@@ -6,7 +6,6 @@ import io
 
 from . import ENCODING_NAMES
 from . import utf_8
-from .parser import compile_to_ast
 
 from typing import Protocol, TYPE_CHECKING
 
@@ -46,11 +45,16 @@ class StreamReader(codecs.StreamReader):
 
 
 def decode(b: Buffer, errors="strict"):
+    from .parser import compile_to_ast
+
+    print("decoding...")
+
     src, length = utf_8.decode(b, errors)
+    if not src or src.isspace():
+        return src, length
+    print(src)
     ast_ = compile_to_ast(src, mode="exec", filepath="<buffered file>")
-    if errors == "strict":
-        # test compilation. This will lead to better error messages in case of SyntaxError
-        compile(ast_, filename="<future-fstring encoded file>", mode="exec")
+
     new_src = ast.unparse(ast_) + "\n"
 
     return new_src, length
@@ -64,8 +68,8 @@ def create_tstring_codec_map() -> dict[str, codecs.CodecInfo]:
             encode=utf_8.encode,
             decode=decode,
             incrementalencoder=utf_8.incrementalencoder,
-            incrementaldecoder=None,
-            streamreader=None,
+            incrementaldecoder=IncrementalDecoder,
+            streamreader=StreamReader,
             streamwriter=utf_8.streamwriter,
         )
         for name in ENCODING_NAMES
