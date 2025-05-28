@@ -7,7 +7,9 @@ from importlib.abc import MetaPathFinder
 from importlib.machinery import ModuleSpec, SourceFileLoader
 from importlib.util import spec_from_loader
 from pathlib import Path
-from . import ENCODING_NAMES, utf_8
+
+from .utils import ENCODING_NAMES
+from .utils import utf_8
 from tokenize import detect_encoding
 
 
@@ -103,3 +105,10 @@ class FutureTstringsLoader(SourceFileLoader):
 
 def install_import_hook():
     sys.meta_path.insert(0, tstring_importer)
+
+
+def uninstall_import_hook():
+    try:
+        sys.meta_path.remove(tstring_importer)
+    except ValueError:
+        pass

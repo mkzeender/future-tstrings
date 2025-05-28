@@ -21,7 +21,8 @@ from parso.python.tree import (
 from parso.tree import NodeOrLeaf as CstNodeOrLeaf
 
 
-from future_tstrings import FSTRING_BUILTIN, TEMPLATE_BUILTIN
+from future_tstrings.utils import FSTRING_BUILTIN
+from future_tstrings.utils import TEMPLATE_BUILTIN
 
 from .ast_apply_offset import (
     apply_offset,

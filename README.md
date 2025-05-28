@@ -54,6 +54,7 @@ t"hello {'world'}"
 
 ```console
 $ future-tstrings example.py
+
 thing = 'world'
 template = __create_template__('hello ', (thing, 'thing', None, ''))
 print(template)
@@ -68,20 +69,18 @@ They should NOT disable this behavior on python<3.14. Instead, they should only 
 ## How does this work?
 
 `future-tstrings` has two parts:
+1. An `importer` which transpiles t-strings and f-strings to older versions of python
+1. An alternative utf-8 compatible `codec` which does the same (in case you can't use the importer)
+1. A `.pth` file which registers the importer on interpreter startup.
 
-1. A utf-8 compatible `codec` which performs source manipulation
-    - The `codec` first decodes the source bytes using the UTF-8 codec
-    - The `codec` then leverages the `parso` library to recompile the
-      t-strings and f-strings.
-2. A `.pth` file which registers a codec on interpreter startup.
+## Alternative python environments
 
-## when you aren't using normal `site` registration
+In environments (such as aws lambda) where packages are not truly installed packages, the `.pth` magic will not work.
 
-in setups (such as aws lambda) where you utilize `PYTHONPATH` or `sys.path`
-instead of truly installed packages, the `.pth` magic above will not take.
+Additionally, in environments that don't load (directly) import .py files, the importer will not work.
 
-for those circumstances, you'll need to manually initialize `future-tstrings`
-in a python file that does not use them. For instance:
+For those circumstances, you'll need to manually initialize `future-tstrings`
+in a regular python module. For instance:
 
 ```python
 from future_tstrings.installer import install

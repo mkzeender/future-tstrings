@@ -1,33 +1,33 @@
 from __future__ import annotations
 import sys
 
-from . import (
-    ENCODING_NAMES,
-    natively_supports_tstrings,
-    FSTRING_BUILTIN,
-    TEMPLATE_BUILTIN,
-    utf_8,
-)
 import codecs
 
-_installed = False
+from .utils import (
+    FSTRING_BUILTIN,
+    TEMPLATE_BUILTIN,
+    natively_supports_tstrings,
+    get_native_codec,
+)
 
 
-def install(use_import_hook: bool = True):
+_active_mode = None
+
+
+def install(use_import_hook: bool = False) -> None:
     """
     Install the future-tstrings preprocessor, allowing imported modules to use t-strings.
 
     Args:
         use_import_hook (bool, optional): Whether to use the import hook. This leads to
-        better error messages. Otherwise, uses a custom encoding. Defaults to True.
+        better error messages. Otherwise, uses a custom codec.
 
     """
-    global _installed
-    if _installed:
-        return
-    _installed = True
+    global _active_mode
 
-    codec_map_factory = create_native_codec_map
+    if _active_mode == use_import_hook:
+        # nothing to do!
+        return
 
     if not natively_supports_tstrings():
         import string
@@ -42,18 +42,27 @@ def install(use_import_hook: bool = True):
         # implement fstrings too! (this is only relevant for python <3.12)
         setattr(builtins, FSTRING_BUILTIN, templatelib._create_joined_string)
 
-        if use_import_hook or (__debug__ and use_import_hook is None):
+        if use_import_hook:
             from .importer import install_import_hook
 
             install_import_hook()
+
+            if _active_mode is not None:
+                from .encoding import get_tstring_codec
+
+                codecs.unregister(get_tstring_codec)
+
+            codecs.register(get_native_codec)
+
         else:
-            from .encoding import create_tstring_codec_map
+            if _active_mode is not None:
+                from .importer import uninstall_import_hook
 
-            codec_map_factory = create_tstring_codec_map
+                uninstall_import_hook()
+                codecs.unregister(get_native_codec)
 
-    # register codec
-    codecs.register(codec_map_factory().get)
+            from .encoding import get_tstring_codec
 
+            codecs.register(get_tstring_codec)
 
-def create_native_codec_map():
-    return {name: utf_8 for name in ENCODING_NAMES}
+    _active_mode = use_import_hook

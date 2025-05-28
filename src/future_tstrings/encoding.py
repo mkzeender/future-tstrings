@@ -4,8 +4,8 @@ import ast
 import codecs
 import io
 
-from . import ENCODING_NAMES
-from . import utf_8
+from .utils import ENCODING_NAMES
+from .utils import utf_8
 
 from typing import Protocol, TYPE_CHECKING
 
@@ -61,16 +61,15 @@ def decode(b: Buffer, errors="strict"):
 
 
 # codec api
-def create_tstring_codec_map() -> dict[str, codecs.CodecInfo]:
-    return {
-        name: codecs.CodecInfo(
-            name=name,
-            encode=utf_8.encode,
-            decode=decode,
-            incrementalencoder=utf_8.incrementalencoder,
-            incrementaldecoder=IncrementalDecoder,
-            streamreader=StreamReader,
-            streamwriter=utf_8.streamwriter,
-        )
-        for name in ENCODING_NAMES
-    }
+get_tstring_codec = {
+    name: codecs.CodecInfo(
+        name=name,
+        encode=utf_8.encode,
+        decode=decode,
+        incrementalencoder=utf_8.incrementalencoder,
+        incrementaldecoder=IncrementalDecoder,
+        streamreader=StreamReader,
+        streamwriter=utf_8.streamwriter,
+    )
+    for name in ENCODING_NAMES
+}.get

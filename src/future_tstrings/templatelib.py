@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Literal, NamedTuple, TypeVar, final
-from . import natively_supports_tstrings
+from .utils import natively_supports_tstrings
 
 ConversionType = Literal["a", "r", "s", None]
 
