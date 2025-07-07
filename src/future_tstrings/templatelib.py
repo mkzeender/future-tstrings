@@ -3,15 +3,15 @@ from __future__ import annotations
 from collections.abc import Iterator
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Literal, NamedTuple, TypeVar, final
-from .utils import natively_supports_tstrings
+from sys import version_info
 
 ConversionType = Literal["a", "r", "s", None]
 
-if not TYPE_CHECKING and natively_supports_tstrings():
+if not TYPE_CHECKING and version_info >= (3, 14):
     from string.templatelib import (
         Template as Template,
         Interpolation as Interpolation,
-    )  # type: ignore
+    )
 
 else:
 
@@ -86,16 +86,7 @@ else:
                     yield i
 
         def __repr__(self) -> str:
-            return (
-                "t'"
-                + (
-                    "".join(
-                        (_escape_string(v) if isinstance(v, str) else v._create_repr())
-                        for v in self
-                    )
-                )
-                + "'"
-            )
+            return 't"' + ("".join(_repr_piece(v) for v in self)) + '"'
 
         def __add__(self, other: Template) -> Template:
             if isinstance(other, Template):
@@ -113,27 +104,24 @@ else:
         conversion: ConversionType
         format_spec: str
 
-        def _create_repr(self):
-            conv = ("!" + self.conversion) if self.conversion is not None else ""
-            fmt = (":" + self.format_spec) if self.format_spec else ""
 
-            return f"{{{self.value!r}{conv}{fmt}}}"
+def _repr_piece(v: str | Interpolation) -> str:
+    if isinstance(v, str):
+        return (
+            v.encode("unicode_escape", errors="ignore")
+            .decode("utf-8", errors="ignore")
+            .replace('"', '\\"')
+        )
+    conv = ("!" + v.conversion) if v.conversion is not None else ""
+    fmt = (":" + v.format_spec) if v.format_spec else ""
 
-
-def _escape_string(s: str):
-    s = repr(s)
-    q = s[0]
-    s = s[1:-1]
-    if q == '"':
-        s = s.replace("'", r"\'")
-
-    return s
+    return "{" + repr(v.value) + conv + fmt + "}"
 
 
-_T = TypeVar("_T")
+_ConvertT = TypeVar("_ConvertT")
 
 
-def convert(value: _T, conversion: ConversionType = None) -> _T | str:
+def convert(value: _ConvertT, conversion: ConversionType = None) -> _ConvertT | str:
     """Convert a value to string based on conversion type"""
     if conversion == "a":
         return ascii(value)

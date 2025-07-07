@@ -18,11 +18,10 @@ This api may be unstable until the release of python 3.14 to ensure it is fully 
 
 ## Usage
 
-Include the following encoding cookie at the top of your file (this replaces
-the utf-8 cookie if you already have it):
+Include the following magic line at the top of the file (before regular imports)
 
 ```python
-# -*- coding: future-tstrings -*-
+from future_tstrings import _
 ```
 
 And then write python 3.14 tstring and fstring code as usual!
@@ -31,16 +30,17 @@ And then write python 3.14 tstring and fstring code as usual!
 ```python
 - example.py
 
-# -*- coding: future-tstrings -*-
-thing = 'world'
-template = t'hello {thing}'
-print(template)
+from string.templatelib import Template  # or, future_tstrings.templatelib
 
-assert template.strings[0] == 'hello '
-assert template.interpolations[0].value == 'world'
+thing = "world"
+template: Template = t"hello {thing}"
 
-from string.templatelib import Template
-assert isinstance(template, Template)
+print(repr(template))
+# t"hello {'world'}"
+
+assert template.strings[0] == "hello "
+assert template.interpolations[0].value == "world"
+
 ```
 
 ```console
@@ -64,7 +64,20 @@ print(template)
 
 Libraries that consume template strings (html parsers, etc) do not need to do anything extra to support future-tstrings, except:
 
-They should NOT disable this behavior on python<3.14. Instead, they should only disable the behavior if `import strings.templatelib` fails.
+They should NOT disable this behavior on python<3.14. To support future-tstrings without listing it as a dependency, use the following:
+
+```python
+try:
+    from string.templatelib import Template
+except ImportError:
+    if TYPE_CHECKING:
+        raise
+    else:
+        class Template:
+            pass
+
+
+```
 
 ## How does this work?
 

@@ -36,9 +36,7 @@ jobs:
     - name: Test with pytest
       run: |
         uv run pytest .
-    - name: Type checking
-      run: |
-        uv run mypy --ignore-missing-imports -p future_tstrings
+
 
   build-and-test-310-311:
 

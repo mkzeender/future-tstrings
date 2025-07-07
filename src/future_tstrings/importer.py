@@ -2,15 +2,12 @@ from __future__ import annotations
 
 # Limit how much we import. This module is loaded at Python startup!!!
 # Don't import things until they are needed.
+import re
 import sys
 from importlib.abc import MetaPathFinder
 from importlib.machinery import ModuleSpec, SourceFileLoader
 from importlib.util import spec_from_loader
 from pathlib import Path
-
-from .utils import ENCODING_NAMES
-from .utils import utf_8
-from tokenize import detect_encoding
 
 
 TYPE_CHECKING = False
@@ -21,6 +18,42 @@ if TYPE_CHECKING:
     from types import CodeType, ModuleType
 
 # coding_cookie = re.compile(rb"^\s*#.*coding[=:]\s*future[-_]tstrings(\s|$)")
+
+
+find_feature = re.compile(
+    r"(?s)^\s*(?:"
+    r"(\"{3}(?:[\s\S]*?)\"{3}|'{3}(?:[\s\S]*?)'{3})"
+    r"|"
+    r"(\"{3}|'{3})"
+    r"|"
+    r"from\s+__future__\s+import.*"
+    r"|"
+    r"\#.*"
+    r"|"
+    r"\s*$"
+    r"|"
+    r"(from\s+future_tstrings\s+import\s+_\s.*)"
+    r")"
+)
+
+find_feature_docstrings = {'"""': re.compile(r"\"{3}"), "'''": re.compile(r"\'{3}")}
+
+
+def is_tstring_file(fp: Path) -> bool:
+    in_doc: str | None = None
+    with fp.open("r", errors="ignore") as f:
+        for line in f:
+            if in_doc:
+                if find_feature_docstrings[in_doc].match(line):
+                    in_doc = ""
+                continue
+            if (m := find_feature.match(line)) is None:
+                return False
+            if m.group(3):
+                return True
+            in_doc = m.group(2)
+
+    return False
 
 
 def _decode_path(path: str | PathLike | Buffer) -> str:
@@ -39,6 +72,7 @@ class TstringFileFinder(MetaPathFinder):
         path: Sequence[str] | None,
         target: ModuleType | None = None,
     ) -> ModuleSpec | None:
+        file = "<None>"
         try:
             if target is not None:
                 return None
@@ -49,9 +83,7 @@ class TstringFileFinder(MetaPathFinder):
             for dir in path:
                 for file in Path(dir).glob(f"{name}.[pP][yY]"):
                     file = file.resolve()
-                    with file.open("br") as f:
-                        encoding, _ = detect_encoding(f.readline)
-                    if encoding in ENCODING_NAMES:
+                    if is_tstring_file(file):
                         return spec_from_loader(
                             name=fullname,
                             loader=FutureTstringsLoader(
@@ -59,13 +91,16 @@ class TstringFileFinder(MetaPathFinder):
                             ),
                         )
                     return None
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             pass
         except Exception:
             import traceback
 
-            print("Exception ignored in importer:", sys.stderr)
-            traceback.print_exc()
+            print(
+                f"Exception ignored in importer while importing file {file!s}: ",
+                file=sys.stderr,
+            )
+            traceback.print_exc(file=sys.stderr)
 
         return None
 
@@ -93,16 +128,11 @@ class FutureTstringsLoader(SourceFileLoader):
             # already valid Python AST
             return super(FutureTstringsLoader, self).source_to_code(data, path)
         else:
-            data, _ = utf_8.decode(data)
+            data = bytes(data).decode()
 
         ast = compile_to_ast(data, mode="exec", filepath=path)
 
         return super().source_to_code(ast, path)
-
-    def get_source(self, fullname: str) -> str | None:
-        print("getting source...")
-        with open(self.path, "r", newline=None, encoding="utf-8") as f:
-            return f.read()
 
 
 def install_import_hook():

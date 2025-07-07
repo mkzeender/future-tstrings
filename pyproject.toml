@@ -5,7 +5,7 @@ description = "Backport of tstrings and PEP701 fstrings to python <3.14"
 readme = "README.md"
 authors = [{ name = "Marckie Zeender", email = "mkzeender@gmail.com" }]
 requires-python = ">=3.9"
-dependencies = ["parso==0.8.4"]
+dependencies = ["parso==0.8.4;python_version<'3.14'"]
 
 [project.scripts]
 future-tstrings = "future_tstrings.main:main"
