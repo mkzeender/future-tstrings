@@ -67,6 +67,8 @@ class TstringFileFinder(MetaPathFinder):
             print("Exception ignored in importer:", sys.stderr)
             traceback.print_exc()
 
+        return None
+
 
 tstring_importer = TstringFileFinder()
 
@@ -75,10 +77,10 @@ class FutureTstringsLoader(SourceFileLoader):
     def __init__(self, fullname: str, path: str) -> None:
         super().__init__(fullname, path)
 
-    def source_to_code(
+    def source_to_code(  # type: ignore
         self,
         data: Buffer | str | Module | Expression | Interactive,
-        path: Buffer | str | PathLike[str],
+        path: Buffer | str | PathLike[str] = "",
     ) -> CodeType:
         from ast import AST
         from future_tstrings.parser import compile_to_ast
@@ -89,7 +91,7 @@ class FutureTstringsLoader(SourceFileLoader):
             pass
         elif isinstance(data, AST):
             # already valid Python AST
-            return super().source_to_code(data, path)
+            return super(FutureTstringsLoader, self).source_to_code(data, path)
         else:
             data, _ = utf_8.decode(data)
 

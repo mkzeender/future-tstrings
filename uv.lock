@@ -38,7 +38,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "parso", specifier = ">=0.8.4" }]
+requires-dist = [{ name = "parso", specifier = "==0.8.4" }]
 
 [package.metadata.requires-dev]
 dev = [

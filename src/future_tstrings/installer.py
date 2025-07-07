@@ -23,6 +23,8 @@ def install(use_import_hook: bool = False) -> None:
         better error messages. Otherwise, uses a custom codec.
 
     """
+    from .importer import install_import_hook, uninstall_import_hook
+
     global _active_mode
 
     if _active_mode == use_import_hook:
@@ -43,8 +45,6 @@ def install(use_import_hook: bool = False) -> None:
         setattr(builtins, FSTRING_BUILTIN, templatelib._create_joined_string)
 
         if use_import_hook:
-            from .importer import install_import_hook
-
             install_import_hook()
 
             if _active_mode is not None:
@@ -56,8 +56,6 @@ def install(use_import_hook: bool = False) -> None:
 
         else:
             if _active_mode is not None:
-                from .importer import uninstall_import_hook
-
                 uninstall_import_hook()
                 codecs.unregister(get_native_codec)
 
