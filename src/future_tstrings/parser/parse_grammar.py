@@ -37,7 +37,7 @@ _gram = None
 def load_grammar() -> FutureGrammar:
     global _gram
     if _gram is None:
-        version = parse_version_string()
+        version = parse_version_string("3.13")
         gram_text = read_text(
             pkg_anchor,
             "xgrammar313.txt",

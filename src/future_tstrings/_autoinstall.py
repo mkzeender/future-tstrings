@@ -1,3 +1,3 @@
-from .installer import install
+from . import install
 
 install()

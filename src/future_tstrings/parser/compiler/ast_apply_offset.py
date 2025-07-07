@@ -39,12 +39,10 @@ def _apply_offset_to_ast_node(node: AST, **offset: Unpack[OptionalPosDict]):
         assert has_loc(node)
         if "lineno" in offset:
             node.lineno += offset["lineno"] - 1
+            node.end_lineno = add(node.end_lineno, offset["lineno"], -1)
         if "col_offset" in offset:
-            node.col_offset += offset["col_offset"] - 2
-        if "end_lineno" in offset:
-            node.end_lineno = add(node.end_lineno, offset["end_lineno"], -1)
-        if "end_col_offset" in offset:
-            node.end_col_offset = add(node.end_col_offset, offset["end_col_offset"], -2)
+            node.col_offset += offset["col_offset"]
+            node.end_col_offset = add(node.end_col_offset, offset["col_offset"])
     except (AttributeError, AssertionError):
         pass
 

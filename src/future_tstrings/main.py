@@ -1,5 +1,5 @@
 import argparse
-from .encoding import decode
+from .parser import compile_to_python
 
 
 def main(argv=None) -> None:
@@ -7,8 +7,8 @@ def main(argv=None) -> None:
     parser.add_argument("filename")
     args = parser.parse_args(argv)
 
-    with open(args.filename, "rb") as f:
-        text, _ = decode(f.read())
+    with open(args.filename, "r", encoding="utf-8") as f:
+        text = compile_to_python(f.read(), filepath=args.filename)
     print(text)
 
 

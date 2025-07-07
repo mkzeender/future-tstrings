@@ -1,6 +1,3 @@
-# coding: future-tstrings
-dude = "10"
-duded = "1010"
-print({k: v for k, v in globals().items() if not k.startswith("_")})
+from future_tstrings.main import main
 
-# print((t"""hello {dude} world"""))
+main(["tests/_fstrings.py"])

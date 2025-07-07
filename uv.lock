@@ -25,22 +25,26 @@ wheels = [
 
 [[package]]
 name = "future-tstrings"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
-    { name = "parso" },
+    { name = "parso", marker = "python_full_version < '3.14'" },
 ]
 
 [package.dev-dependencies]
+all = [
+    { name = "parso" },
+]
 dev = [
     { name = "mypy" },
     { name = "pytest" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "parso", specifier = ">=0.8.4" }]
+requires-dist = [{ name = "parso", marker = "python_full_version < '3.14'", specifier = "==0.8.4" }]
 
 [package.metadata.requires-dev]
+all = [{ name = "parso", specifier = "==0.8.4" }]
 dev = [
     { name = "mypy", specifier = ">=1.15.0" },
     { name = "pytest", specifier = ">=8.3.5" },
