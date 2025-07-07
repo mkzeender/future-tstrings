@@ -48,7 +48,7 @@ $ python -m example
 t"hello {'world'}"
 ```
 
-## Showing transformed source
+## Showing compiled source
 
 `future-tstrings` also includes a cli to show transformed source.
 
@@ -82,18 +82,16 @@ except ImportError:
 ## How does this work?
 
 `future-tstrings` has two parts:
-1. An `importer` which transpiles t-strings and f-strings to older versions of python
-1. An alternative utf-8 compatible `codec` which does the same (in case you can't use the importer)
+1. An `importer` which transpiles t-strings and f-strings to code understood by older versions of python
+
 1. A `.pth` file which registers the importer on interpreter startup.
 
 ## Alternative python environments
 
-In environments (such as aws lambda) where packages are not truly installed packages, the `.pth` magic will not work.
-
-Additionally, in environments that don't load (directly) import .py files, the importer will not work.
+In environments (such as aws lambda) where packages are not installed via pip, the `.pth` magic will not work.
 
 For those circumstances, you'll need to manually initialize `future-tstrings`
-in a regular python module. For instance:
+in a wrapper python module. For instance:
 
 ```python
 from future_tstrings.installer import install
@@ -105,3 +103,5 @@ from actual_main import main
 if __name__ == '__main__':
     main()
 ```
+
+Additionally, for zipped or frozen packages, the importer will not work. In such environments, you will need to use the ```future-tstrings``` command-line compiler before the code is zipped, frozen, etc.

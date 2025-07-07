@@ -32,6 +32,9 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+all = [
+    { name = "parso" },
+]
 dev = [
     { name = "mypy" },
     { name = "pytest" },
@@ -41,6 +44,7 @@ dev = [
 requires-dist = [{ name = "parso", marker = "python_full_version < '3.14'", specifier = "==0.8.4" }]
 
 [package.metadata.requires-dev]
+all = [{ name = "parso", specifier = "==0.8.4" }]
 dev = [
     { name = "mypy", specifier = ">=1.15.0" },
     { name = "pytest", specifier = ">=8.3.5" },

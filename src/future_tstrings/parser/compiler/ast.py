@@ -100,16 +100,19 @@ class CstToAstCompiler:
                     if isinstance(child, (CstErrorNode, CstErrorLeaf)):
                         break
                 else:
+                    child = node
                     break
             if not isinstance(child, (CstErrorLeaf, CstErrorNode)):
                 bad_child = child.get_next_leaf()
             else:
                 bad_child = child
-            msg = f""""{
-                bad_child.get_code(include_prefix=False)
-                if bad_child is not None
-                else "EOF"
-            }" is not understood here."""
+            msg = f"""{
+                repr(
+                    bad_child.get_code(include_prefix=False)
+                    if bad_child is not None
+                    else "EOF"
+                )
+            } is not understood here."""
             if bad_child is not node and bad_child is not None:
                 self.generic_error(bad_child, msg=msg)
 
@@ -133,17 +136,24 @@ class CstToAstCompiler:
         if end_lineno is None:
             end_lineno = lineno
 
-        raise SyntaxError(
-            msg,
-            (
+        if sys.version_info >= (3, 10):
+            details = (
                 self.filename,
                 lineno,
                 col_offset + 1,
                 code_line,
                 lineno,
                 end_col_offset + 1,
-            ),
-        )
+            )
+        else:
+            details = (
+                self.filename,
+                lineno,
+                col_offset + 1,
+                code_line,
+            )
+
+        raise SyntaxError(msg, details)
 
     def visit(self, node: CstNodeOrLeaf) -> CstNodeOrLeaf:
         return getattr(self, "visit_" + node.type, self.generic_visit)(node)

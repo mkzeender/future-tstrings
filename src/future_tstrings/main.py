@@ -8,7 +8,7 @@ def main(argv=None) -> None:
     args = parser.parse_args(argv)
 
     with open(args.filename, "r", encoding="utf-8") as f:
-        text = compile_to_python(f.read())
+        text = compile_to_python(f.read(), filepath=args.filename)
     print(text)
 
 

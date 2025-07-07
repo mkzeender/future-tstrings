@@ -22,3 +22,4 @@ code = "..."
 
 [dependency-groups]
 dev = ["mypy>=1.15.0", "pytest>=8.3.5"]
+all = ["parso==0.8.4"]
