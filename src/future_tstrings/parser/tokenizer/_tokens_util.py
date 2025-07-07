@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from parso.python.token import PythonTokenTypes as TOKS
 from parso.python.tokenize import PythonToken, FStringNode
 

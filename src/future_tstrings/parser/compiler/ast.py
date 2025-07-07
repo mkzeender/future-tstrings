@@ -78,7 +78,7 @@ def compile_subexpr(node: CstNodeOrLeaf, filepath: str) -> ast.expr:
 
 class CstToAstCompiler:
     def __init__(self, code: str | None = None, filename: str = "<string>") -> None:
-        self.locs_to_override = dict[tuple[int, int], AST]()
+        self.locs_to_override: dict[tuple[int, int], AST] = {}
         self.filename = filename
         self.code = code
 
@@ -224,7 +224,7 @@ class CstToAstCompiler:
     ) -> Call | ast.Constant:
         factory_name = TEMPLATE_BUILTIN if is_tstring else FSTRING_BUILTIN
         pos = position_of(node)
-        parts = list[ast.expr]()
+        parts: list[ast.expr] = []
         for child in node.children:
             if isinstance(child, CstOperator) and child.value == ":":
                 pass
