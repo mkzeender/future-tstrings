@@ -1,6 +1,7 @@
-# use "python -m example", NOT "python example.py"
+# future-tstrings
+# ^^^^^^^^^^^^^^^ magic comment
 
-from future_tstrings import _  # <--- Magic line!
+# use "python -m example", NOT "python example.py"
 
 
 from string.templatelib import Template  # or, future_tstrings.templatelib
