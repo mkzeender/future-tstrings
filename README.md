@@ -21,7 +21,7 @@ This api may be unstable until the release of python 3.14 to ensure it is fully 
 Include the following magic line at the top of the file (before regular imports)
 
 ```python
-from future_tstrings import _
+# future-tstrings
 ```
 
 And then write python 3.14 tstring and fstring code as usual!
@@ -64,17 +64,14 @@ print(template)
 
 Libraries that consume template strings (html parsers, etc) do not need to do anything extra to support future-tstrings, except:
 
-They should NOT disable this behavior on python<3.14. To support future-tstrings without listing it as a dependency, use the following:
+They should NOT disable this behavior on python<3.14. To implicitly support future-tstrings without listing it as a dependency, use the following:
 
 ```python
 try:
     from string.templatelib import Template
 except ImportError:
-    if TYPE_CHECKING:
-        raise
-    else:
-        class Template:
-            pass
+    class Template:
+        pass
 
 
 ```

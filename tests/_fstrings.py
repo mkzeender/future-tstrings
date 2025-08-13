@@ -1,6 +1,5 @@
 # fmt: off
-from future_tstrings import _
-
+# future-tstrings
 
 def test_fstring():
     assert f"{"hello"}" == "hello"

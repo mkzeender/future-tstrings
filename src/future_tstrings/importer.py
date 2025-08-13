@@ -8,6 +8,8 @@ from importlib.abc import MetaPathFinder
 from importlib.machinery import ModuleSpec, SourceFileLoader
 from importlib.util import spec_from_loader
 from pathlib import Path
+import traceback
+
 
 
 TYPE_CHECKING = False
@@ -17,41 +19,14 @@ if TYPE_CHECKING:
     from ast import Expression, Interactive, Module
     from types import CodeType, ModuleType
 
-# coding_cookie = re.compile(rb"^\s*#.*coding[=:]\s*future[-_]tstrings(\s|$)")
-
-
-find_feature = re.compile(
-    r"(?s)^\s*(?:"
-    r"(\"{3}(?:[\s\S]*?)\"{3}|'{3}(?:[\s\S]*?)'{3})"
-    r"|"
-    r"(\"{3}|'{3})"
-    r"|"
-    r"from\s+__future__\s+import.*"
-    r"|"
-    r"\#.*"
-    r"|"
-    r"\s*$"
-    r"|"
-    r"(from\s+future_tstrings\s+import\s+_\s.*)"
-    r")"
-)
-
-find_feature_docstrings = {'"""': re.compile(r"\"{3}"), "'''": re.compile(r"\'{3}")}
-
+magic_line = re.compile(r"\s*#\s*future[\-\_]tstrings\s*(#.*)?$")
 
 def is_tstring_file(fp: Path) -> bool:
     in_doc: str | None = None
     with fp.open("r", errors="ignore") as f:
-        for line in f:
-            if in_doc:
-                if find_feature_docstrings[in_doc].match(line):
-                    in_doc = ""
-                continue
-            if (m := find_feature.match(line)) is None:
-                return False
-            if m.group(3):
+        for _, line in zip(range(3), f):
+            if magic_line.match(line):
                 return True
-            in_doc = m.group(2)
 
     return False
 
@@ -72,7 +47,6 @@ class TstringFileFinder(MetaPathFinder):
         path: Sequence[str] | None,
         target: ModuleType | None = None,
     ) -> ModuleSpec | None:
-        file = "<None>"
         try:
             if target is not None:
                 return None
@@ -94,13 +68,18 @@ class TstringFileFinder(MetaPathFinder):
         except (FileNotFoundError, PermissionError):
             pass
         except Exception:
-            import traceback
-
-            print(
-                f"Exception ignored in importer while importing file {file!s}: ",
-                file=sys.stderr,
-            )
+            if "file" in locals():
+                print(
+                    f"Exception ignored in importer while importing file {file!s}: ",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    f"Exception ignored while importing '{fullname}'",
+                    file=sys.stderr
+                )
             traceback.print_exc(file=sys.stderr)
+
 
         return None
 

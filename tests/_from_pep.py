@@ -1,4 +1,4 @@
-from future_tstrings import _
+# future_tstrings
 
 
 def test_creation():
