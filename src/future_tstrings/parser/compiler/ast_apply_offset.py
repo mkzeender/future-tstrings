@@ -10,9 +10,8 @@ from .positions import (
     has_loc,
 )
 
-TYPE_CHECKING = False
 
-if TYPE_CHECKING:
+if False: # TYPE_CHECKING
     from typing import Any, Unpack
 
 

@@ -1,25 +1,11 @@
 from __future__ import annotations
 import sys
 
-__all__ = ["_", "install"]
+__all__ = ["install"]
 
 TEMPLATE_BUILTIN = "__create_template__"
 FSTRING_BUILTIN = "__create_fstring__"
 
-TYPE_CHECKING = False
-
-
-class _MagicType:
-    """Magic object that when imported"""
-
-    def __repr__(self):
-        return "future_tstrings._"
-
-    def __reduce__(self) -> str:
-        return "_"
-
-
-_ = _MagicType()
 
 
 def install() -> None:

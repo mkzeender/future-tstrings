@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import NamedTuple, Protocol, TypedDict, overload, TYPE_CHECKING
+from typing import NamedTuple, Protocol, TypedDict, overload
 
-if TYPE_CHECKING:
+if False: # TYPE_CHECKING
     from typing import TypeIs
 
 

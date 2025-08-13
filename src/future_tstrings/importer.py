@@ -12,8 +12,7 @@ import traceback
 
 
 
-TYPE_CHECKING = False
-if TYPE_CHECKING:
+if False: # TYPE_CHECKING
     from os import PathLike
     from collections.abc import Buffer, Sequence
     from ast import Expression, Interactive, Module

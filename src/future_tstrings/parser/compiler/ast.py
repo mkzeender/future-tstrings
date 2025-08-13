@@ -36,8 +36,7 @@ from .positions import (
     position_of,
 )
 
-TYPE_CHECKING = False
-if TYPE_CHECKING:
+if False: # TYPE_CHECKING
     from typing import Never, Unpack
 
 
