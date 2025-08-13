@@ -5,12 +5,15 @@ from itertools import zip_longest
 from typing import TYPE_CHECKING, Literal, NamedTuple, TypeVar, final
 from sys import version_info
 
+__all__ = ["Template", "Interpolation", "convert"]
+
 ConversionType = Literal["a", "r", "s", None]
 
 if not TYPE_CHECKING and version_info >= (3, 14):
     from string.templatelib import (
         Template as Template,
         Interpolation as Interpolation,
+        convert as convert
     )
 
 else:
@@ -51,6 +54,9 @@ else:
             for arg in args:
                 if isinstance(arg, str):
                     strings[-1] += arg
+                elif isinstance(arg, Interpolation):
+                    interps.append(arg)
+                    strings.append("")
                 elif isinstance(arg, tuple):
                     interps.append(Interpolation(*arg))
                     strings.append("")
@@ -105,46 +111,48 @@ else:
         format_spec: str
 
 
-def _repr_piece(v: str | Interpolation) -> str:
-    if isinstance(v, str):
-        return (
-            v.encode("unicode_escape", errors="ignore")
-            .decode("utf-8", errors="ignore")
-            .replace('"', '\\"')
-        )
-    conv = ("!" + v.conversion) if v.conversion is not None else ""
-    fmt = (":" + v.format_spec) if v.format_spec else ""
+    def _repr_piece(v: str | Interpolation) -> str:
+        if isinstance(v, str):
+            return (
+                v.encode("unicode_escape", errors="ignore")
+                .decode("utf-8", errors="ignore")
+                .replace('"', '\\"')
+            )
+        conv = ("!" + v.conversion) if v.conversion is not None else ""
+        fmt = (":" + v.format_spec) if v.format_spec else ""
 
-    return "{" + repr(v.value) + conv + fmt + "}"
-
-
-_ConvertT = TypeVar("_ConvertT")
+        return "{" + repr(v.value) + conv + fmt + "}"
 
 
-def convert(value: _ConvertT, conversion: ConversionType = None) -> _ConvertT | str:
-    """Convert a value to string based on conversion type"""
-    if conversion == "a":
-        return ascii(value)
-    elif conversion == "r":
-        return repr(value)
-    elif conversion == "s":
-        return str(value)
-    return value
+    _ConvertT = TypeVar("_ConvertT")
 
 
-def to_fstring(template: Template) -> str:
-    """Join the pieces of a template string as if it was an fstring"""
-    parts = []
-    for item in template:
-        if isinstance(item, str):
-            parts.append(item)
-        else:
-            value = convert(item.value, item.conversion)
-            value = format(value, item.format_spec)
-            parts.append(value)
-    return "".join(parts)
+    def convert(value: _ConvertT, conversion: ConversionType = None) -> _ConvertT | str:
+        """Convert a value to string based on conversion type"""
+        if conversion is None:
+            return value
+        if conversion == "a":
+            return ascii(value)
+        if conversion == "r":
+            return repr(value)
+        if conversion == "s":
+            return str(value)
+        raise ValueError(f'Invalid conversion type: "{conversion}"')
 
 
-def _create_joined_string(*args: str | tuple):
-    """implements fstrings on python < 3.12"""
-    return to_fstring(Template(*args))
+    def to_fstring(template: Template) -> str:
+        """Join the pieces of a template string as if it was an fstring"""
+        parts = []
+        for item in template:
+            if isinstance(item, str):
+                parts.append(item)
+            else:
+                value = convert(item.value, item.conversion)
+                value = format(value, item.format_spec)
+                parts.append(value)
+        return "".join(parts)
+
+
+    def _create_joined_string(*args: str | tuple):
+        """implements fstrings on python < 3.12"""
+        return to_fstring(Template(*args))
