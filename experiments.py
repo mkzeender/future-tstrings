@@ -1,3 +1,7 @@
-from future_tstrings.main import main
+# future-tstrings
 
-main(["tests/_fstrings.py"])
+pi = 3.14
+fmt = '<3'
+t = t"hello {pi}"
+
+print(t)

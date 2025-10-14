@@ -8,7 +8,7 @@ Also serves as a backport of full-syntax fstrings (PEP701-style) to python <3.12
 
 Does nothing on 3.14 or higher.
 
-This api may be unstable until the release of python 3.14 to ensure it is fully compatible.
+Requires python >= 3.8
 
 
 ## Installation
@@ -54,10 +54,6 @@ t"hello {'world'}"
 
 ```console
 $ future-tstrings example.py
-
-thing = 'world'
-template = __create_template__('hello ', (thing, 'thing', None, ''))
-print(template)
 ```
 
 ## Integrating with template processing tools
@@ -72,8 +68,6 @@ try:
 except ImportError:
     class Template:
         pass
-
-
 ```
 
 ## How does this work?
@@ -85,13 +79,11 @@ except ImportError:
 
 ## Alternative python environments
 
-In environments (such as aws lambda) where packages are not installed via pip, the `.pth` magic will not work.
-
-For those circumstances, you'll need to manually initialize `future-tstrings`
+In environments (such as aws lambda) where packages are not installed via pip, the `.pth` magic will not work, so you'll need to manually initialize `future-tstrings`
 in a wrapper python module. For instance:
 
 ```python
-from future_tstrings.installer import install
+from future_tstrings import install
 
 install()
 

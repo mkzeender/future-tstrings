@@ -29,7 +29,7 @@ wheels = [
 
 [[package]]
 name = "future-tstrings"
-version = "0.1.2"
+version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "parso", marker = "python_full_version < '3.14'" },

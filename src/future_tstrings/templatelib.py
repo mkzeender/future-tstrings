@@ -2,47 +2,39 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from itertools import zip_longest
-from typing import TYPE_CHECKING, Literal, NamedTuple, TypeVar, final
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, TypeVar, final
 from sys import version_info
 
 __all__ = ["Template", "Interpolation", "convert"]
+__name__ = 'string.templatelib'
 
 ConversionType = Literal["a", "r", "s", None]
 
+if TYPE_CHECKING:
+    from typing import Never
+
 if not TYPE_CHECKING and version_info >= (3, 14):
-    from string.templatelib import (
-        Template as Template,
-        Interpolation as Interpolation,
-        convert as convert
-    )
+        from string.templatelib import ( # type: ignore
+            Template as Template,
+            Interpolation as Interpolation,
+            convert as convert
+        )
 
 else:
 
     @final
     class Template:
-        __slots__ = "_strings", "_interpolations"
+        
+        strings: tuple[str, ...]
+        interpolations: tuple[Interpolation, ...]
 
-        @property
-        def strings(self) -> tuple[str, ...]:
-            """
-            A non-empty tuple of the string parts of the template,
-            with N+1 items, where N is the number of interpolations
-            in the template.
-            """
-            return self._strings
+        __slots__ = "strings", "interpolations"
 
-        @property
-        def interpolations(self) -> tuple[Interpolation, ...]:
-            """
-            A tuple of the interpolation parts of the template.
-            This will be an empty tuple if there are no interpolations.
-            """
-            return self._interpolations
 
         def __init__(
             self,
-            *args: str | Interpolation | tuple[object, str, ConversionType, str] | None,
-        ):
+            *args: str | Interpolation,
+        ) -> None:
             """
             Create a new Template instance.
 
@@ -58,7 +50,7 @@ else:
                     interps.append(arg)
                     strings.append("")
                 elif isinstance(arg, tuple):
-                    interps.append(Interpolation(*arg))
+                    interps.append(Interpolation(*arg)) # type: ignore
                     strings.append("")
                 elif arg is None:
                     pass
@@ -67,9 +59,10 @@ else:
                         f"Argument of type {type(arg)} is not supported by Template()"
                     )
 
-            self._strings = tuple(strings)
-            self._interpolations = tuple(interps)
+            _set_strings(self, tuple(strings))
+            _set_interpolations(self, tuple(interps))
 
+        
         @property
         def values(self) -> tuple[object, ...]:
             """
@@ -92,7 +85,12 @@ else:
                     yield i
 
         def __repr__(self) -> str:
-            return 't"' + ("".join(_repr_piece(v) for v in self)) + '"'
+            return (
+                'Template('
+                    'strings=' + repr(self.strings) + ', ' +
+                    'interpolations=' + repr(self.interpolations) +
+                ')'
+            )
 
         def __add__(self, other: Template) -> Template:
             if isinstance(other, Template):
@@ -103,6 +101,12 @@ else:
             if isinstance(other, Template):
                 return Template(*other, *self)
             return NotImplemented
+        
+        def __setattr__(self, name: str, value: Any) -> Never:
+            raise AttributeError('Template object is immutable', name=name, obj=self)
+        
+    _set_strings = Template.strings.__set__ # type: ignore
+    _set_interpolations = Template.interpolations.__set__ # type: ignore
 
     class Interpolation(NamedTuple):
         value: object
@@ -110,24 +114,21 @@ else:
         conversion: ConversionType
         format_spec: str
 
-
-    def _repr_piece(v: str | Interpolation) -> str:
-        if isinstance(v, str):
+        def __repr__(self) -> str:
             return (
-                v.encode("unicode_escape", errors="ignore")
-                .decode("utf-8", errors="ignore")
-                .replace('"', '\\"')
+                'Interpolation(' +
+                    repr(self.value) + ', ' +
+                    repr(self.expression) + ', ' +
+                    repr(self.conversion) + ', ' +
+                    repr(self.format_spec) +
+                ')'
             )
-        conv = ("!" + v.conversion) if v.conversion is not None else ""
-        fmt = (":" + v.format_spec) if v.format_spec else ""
-
-        return "{" + repr(v.value) + conv + fmt + "}"
 
 
     _ConvertT = TypeVar("_ConvertT")
 
 
-    def convert(value: _ConvertT, conversion: ConversionType = None) -> _ConvertT | str:
+    def convert(value: _ConvertT, /, conversion: ConversionType) -> _ConvertT | str:
         """Convert a value to string based on conversion type"""
         if conversion is None:
             return value
@@ -137,7 +138,7 @@ else:
             return repr(value)
         if conversion == "s":
             return str(value)
-        raise ValueError(f'Invalid conversion type: "{conversion}"')
+        raise ValueError('invalid conversion specifier: ' + str(conversion))
 
 
     def to_fstring(template: Template) -> str:
@@ -153,6 +154,6 @@ else:
         return "".join(parts)
 
 
-    def _create_joined_string(*args: str | tuple):
+    def _create_joined_string(*args):
         """implements fstrings on python < 3.12"""
         return to_fstring(Template(*args))
