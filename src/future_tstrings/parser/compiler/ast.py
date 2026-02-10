@@ -36,8 +36,7 @@ from .positions import (
     position_of,
 )
 
-if False: # TYPE_CHECKING
-    from typing import Never, Unpack
+from typing import Never, Unpack
 
 
 def _compile_with_offset(
@@ -196,6 +195,8 @@ class CstToAstCompiler:
 
                     eq_text: str = expr_node.get_code() + child.get_code() + suffix  # type: ignore
                     yield ast.Constant(value=eq_text, **position_of(child))
+                elif child.value not in ('}', ':', '!'):
+                    expr_node = child
             elif isinstance(child, CstNode) and child.type == "fstring_conversion":
                 conversion = ast.Constant(child.children[1].value, **position_of(child))  # type: ignore
             elif isinstance(child, CstNode) and child.type == "fstring_format_spec":
