@@ -35,8 +35,10 @@ from .positions import (
     PosTuple,
     position_of,
 )
-
-from typing import Never, Unpack
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    # not available in later versions
+    from typing import Never, Unpack
 
 
 def _compile_with_offset(

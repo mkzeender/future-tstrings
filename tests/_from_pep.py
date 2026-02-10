@@ -1,4 +1,4 @@
-# future_tstrings
+# future-tstrings
 
 
 def test_creation():
@@ -46,3 +46,17 @@ def test_nested_tstring():
     template = t"Value: {t'hello {world}'}"
 
     assert template.interpolations[0].value.interpolations[0].value == world
+
+def test_literals():
+    template = t"Value: {...}, {...!r}"
+
+    assert template.interpolations[0].value is ...
+    assert template.interpolations[0].value is ...
+
+    template = t"Value: {None}, {1}, { {} }"
+
+    i = template.interpolations
+
+    assert i[0].value is None
+    assert i[1].value == 1
+    assert i[2].value == {}
