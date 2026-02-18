@@ -1,6 +1,6 @@
 [project]
 name = "future-tstrings"
-version = "1.0.0"
+version = "1.0.1"
 description = "Backport of tstrings to python <3.14, and full-syntax fstrings to python <3.12"
 readme = "README.md"
 authors = [{ name = "Marckie Zeender", email = "mkzeender@gmail.com" }]
