@@ -89,30 +89,36 @@ class CstToAstCompiler:
             for i, child in enumerate(node.children):
                 node.children[i] = self.visit(child)
         return node
+    
+    def _find_error_leaf(self, node: CstNodeOrLeaf|None) -> CstErrorLeaf|None:
+
+        if isinstance(node, CstErrorLeaf) or node is None:
+            return node
+        for child in getattr(node, "children", ()):
+            if leaf := self._find_error_leaf(child):
+                return leaf
+            
+        return None
+
 
     def generic_error(
         self, node: CstNodeOrLeaf, msg=None, **position: Unpack[OptionalPosDict]
     ) -> Never:
         if isinstance(node, (CstErrorNode, CstErrorLeaf)):
-            child: CstNodeOrLeaf = node
-            while children := getattr(child, "children", None):
-                for child in children:
-                    if isinstance(child, (CstErrorNode, CstErrorLeaf)):
-                        break
-                else:
-                    child = node
-                    break
-            if not isinstance(child, (CstErrorLeaf, CstErrorNode)):
-                bad_child = child.get_next_leaf()
+            
+            if (bad_child := self._find_error_leaf(node)) is None and (bad_child := self._find_error_leaf(node.get_next_sibling())) is None:
+                
+                bad_child = node
+                msg = 'Invalid Syntax.'
+                bad_child.get_next_sibling()
             else:
-                bad_child = child
-            msg = f"""{
-                repr(
-                    bad_child.get_code(include_prefix=False)
-                    if bad_child is not None
-                    else "EOF"
-                )
-            } is not understood here."""
+                msg = f"""{
+                    repr(
+                        bad_child.get_code(include_prefix=False)
+                        if bad_child is not None
+                        else "EOF"
+                    )
+                } is not understood here."""
             if bad_child is not node and bad_child is not None:
                 self.generic_error(bad_child, msg=msg)
 
